@@ -4,7 +4,7 @@
 
 -> core: 連接資料庫、專案設定等
 
--> sim:  架構邏輯層
+-> sim:  業務邏輯架構
 
 -> vue:  vite, pinia
 
