@@ -1,5 +1,15 @@
 import { defineStore } from 'pinia'
 
+// API 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_URLS = {
+    SET_CSRF_TOKEN: `${API_BASE_URL}/set-csrf-token`,
+    LOGIN: `${API_BASE_URL}/login`,
+    LOGOUT: `${API_BASE_URL}/logout`,
+    FETCH_USER: `${API_BASE_URL}/user`
+};
+
+
 export const useAuthStore = defineStore('auth', {
     state: () => {
         const storedState = localStorage.getItem('authState')
@@ -10,14 +20,20 @@ export const useAuthStore = defineStore('auth', {
     },
     actions: {
         async setCsrfToken() {
-            await fetch('http://localhost:8000/api/set-csrf-token', {
+            await fetch(API_URS.SET_CSRF_TOKEN, {
                 method: 'GET',
                 credentials: 'include'
             })
         },
 
+        /**
+         * LOG-IN
+         * @param {string} email
+         * @param {string} password
+         * @param {Object} router - Vue Router (Options)
+         */
         async login(email, password, router=null) {
-            const response = await fetch('http://localhost:8000/api/login', {
+            const response = await fetch(API_URLS.LOGIN, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,15 +50,17 @@ export const useAuthStore = defineStore('auth', {
                     await router.push({name: "home"})
                 }
             } else {
-                this.user = null
-                this.isAuthenticated = false
-                this.saveState()
+                this.clearState();
             }
         },
 
+        /**
+         * Log-out
+         * @param {Object} router - Vue Router（Options）
+         */        
         async logout(router=null) {
             try {
-                const response = await fetch('http://localhost:8000/api/logout', {
+                const response = await fetch(API_URLS.LOGOUT, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCSRFToken()
@@ -50,22 +68,23 @@ export const useAuthStore = defineStore('auth', {
                     credentials: 'include'
                 })
                 if (response.ok) {
-                    this.user = null
-                    this.isAuthenticated = false
-                    this.saveState()
+                    this.clearState();
                     if (router){
                         await router.push({name: "login"})
                     }
+                }else{
+                    this.clearState();
                 }
             } catch (error) {
                 console.error('Logout failed', error)
-                throw error
+                this.clearState();
             }
         },
 
+        // Get USER-ID Data
         async fetchUser() {
             try {
-                const response = await fetch('http://localhost:8000/api/user', {
+                const response = await fetch(API_URLS.FETCH_USER, {
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
@@ -89,22 +108,24 @@ export const useAuthStore = defineStore('auth', {
             this.saveState()
         },
 
+        // COOKIE-SAVE
         saveState() {
-            /*
-            We save state to local storage to keep the
-            state when the user reloads the page.
-
-            This is a simple way to persist state. For a more robust solution,
-            use pinia-persistent-state.
-             */
             localStorage.setItem('authState', JSON.stringify({
                 user: this.user,
                 isAuthenticated: this.isAuthenticated
             }))
+        },
+
+        // Clear User State & Refresh saveState()
+        clearState() {
+            state.user = null;
+            state.isAuthenticated = false;
+            saveState();
         }
     }
 })
 
+// Client-Cookie-Get
 export function getCSRFToken() {
     /*
     We get the CSRF token from the cookie to include in our requests.
