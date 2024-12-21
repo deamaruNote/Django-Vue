@@ -1,4 +1,5 @@
 # Django-Vue
+# 實驗性專案
 
 ## 測試前端API使用
 
@@ -15,3 +16,13 @@ python3 mane.py runserver
 
 npm run dev
 /* 執行前端 */
+
+=============================
+
+建置Docker image
+docker build -t frontend-app .
+
+RUN Docker image
+docker run -p 8080:80 frontend-app
+
+** 目前前端有些問題，運行後python 404 **
